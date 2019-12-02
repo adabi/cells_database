@@ -1,0 +1,16 @@
+#!/bin/bash
+
+currentdirectory=${0%/*}
+updaterpath="$currentdirectory/updater_source"
+cd "$currentdirectory"
+echo "$currentdirectory"
+echo "$updaterpath"
+
+Pyinstaller -y -w -F "$updaterpath/updater.py"
+
+Pyinstaller -y -w -F "$currentdirectory/database_mac.spec"
+
+cp ./dist/updater "$currentdirectory/dist/Cells Database.app/Contents/MacOS"
+
+cp ./drive-python-quickstart.json ./dist/"Cells Database.app"/Contents/MacOS
+
