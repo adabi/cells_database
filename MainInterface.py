@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'Maininterface.ui'
+# Form implementation generated from reading ui file 'MainInterface.ui'
 #
-# Created by: PyQt5 UI code generator 5.9.2
+# Created by: PyQt5 UI code generator 5.13.2
 #
 # WARNING! All changes made in this file will be lost!
 
+
 from PyQt5 import QtCore, QtGui, QtWidgets
+
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -25,6 +27,51 @@ class Ui_MainWindow(object):
         self.tab.setTabsClosable(False)
         self.tab.setMovable(False)
         self.tab.setObjectName("tab")
+        self.tabDatabase = QtWidgets.QWidget()
+        self.tabDatabase.setObjectName("tabDatabase")
+        self.formLayout = QtWidgets.QFormLayout(self.tabDatabase)
+        self.formLayout.setObjectName("formLayout")
+        self.label_17 = QtWidgets.QLabel(self.tabDatabase)
+        self.label_17.setObjectName("label_17")
+        self.formLayout.setWidget(0, QtWidgets.QFormLayout.SpanningRole, self.label_17)
+        self.txtDatabaseLocation = QtWidgets.QLineEdit(self.tabDatabase)
+        self.txtDatabaseLocation.setMaximumSize(QtCore.QSize(250, 16777215))
+        self.txtDatabaseLocation.setObjectName("txtDatabaseLocation")
+        self.formLayout.setWidget(1, QtWidgets.QFormLayout.SpanningRole, self.txtDatabaseLocation)
+        self.label_18 = QtWidgets.QLabel(self.tabDatabase)
+        self.label_18.setObjectName("label_18")
+        self.formLayout.setWidget(3, QtWidgets.QFormLayout.LabelRole, self.label_18)
+        self.txtUsername = QtWidgets.QLineEdit(self.tabDatabase)
+        self.txtUsername.setObjectName("txtUsername")
+        self.formLayout.setWidget(3, QtWidgets.QFormLayout.FieldRole, self.txtUsername)
+        self.label_19 = QtWidgets.QLabel(self.tabDatabase)
+        self.label_19.setObjectName("label_19")
+        self.formLayout.setWidget(4, QtWidgets.QFormLayout.LabelRole, self.label_19)
+        self.txtPassword = QtWidgets.QLineEdit(self.tabDatabase)
+        self.txtPassword.setObjectName("txtPassword")
+        self.formLayout.setWidget(4, QtWidgets.QFormLayout.FieldRole, self.txtPassword)
+        self.checkBox = QtWidgets.QCheckBox(self.tabDatabase)
+        self.checkBox.setChecked(True)
+        self.checkBox.setObjectName("checkBox")
+        self.formLayout.setWidget(6, QtWidgets.QFormLayout.SpanningRole, self.checkBox)
+        self.checkBox_2 = QtWidgets.QCheckBox(self.tabDatabase)
+        self.checkBox_2.setChecked(True)
+        self.checkBox_2.setObjectName("checkBox_2")
+        self.formLayout.setWidget(7, QtWidgets.QFormLayout.SpanningRole, self.checkBox_2)
+        self.checkBox_3 = QtWidgets.QCheckBox(self.tabDatabase)
+        self.checkBox_3.setChecked(True)
+        self.checkBox_3.setObjectName("checkBox_3")
+        self.formLayout.setWidget(8, QtWidgets.QFormLayout.SpanningRole, self.checkBox_3)
+        self.label_20 = QtWidgets.QLabel(self.tabDatabase)
+        self.label_20.setObjectName("label_20")
+        self.formLayout.setWidget(2, QtWidgets.QFormLayout.LabelRole, self.label_20)
+        self.txtDatabaseName = QtWidgets.QLineEdit(self.tabDatabase)
+        self.txtDatabaseName.setObjectName("txtDatabaseName")
+        self.formLayout.setWidget(2, QtWidgets.QFormLayout.FieldRole, self.txtDatabaseName)
+        self.bttnConnect = QtWidgets.QPushButton(self.tabDatabase)
+        self.bttnConnect.setObjectName("bttnConnect")
+        self.formLayout.setWidget(5, QtWidgets.QFormLayout.FieldRole, self.bttnConnect)
+        self.tab.addTab(self.tabDatabase, "")
         self.tabStore = QtWidgets.QWidget()
         self.tabStore.setObjectName("tabStore")
         self.gridLayout_8 = QtWidgets.QGridLayout(self.tabStore)
@@ -612,7 +659,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusBar)
 
         self.retranslateUi(MainWindow)
-        self.tab.setCurrentIndex(2)
+        self.tab.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         MainWindow.setTabOrder(self.spnNumberStore, self.cmbDewarStore)
         MainWindow.setTabOrder(self.cmbDewarStore, self.bttnFindStorage)
@@ -629,8 +676,7 @@ class Ui_MainWindow(object):
         MainWindow.setTabOrder(self.txtComments, self.bttnAddCells)
         MainWindow.setTabOrder(self.bttnAddCells, self.txtEmailStore)
         MainWindow.setTabOrder(self.txtEmailStore, self.bttnEmailPositionsStore)
-        MainWindow.setTabOrder(self.bttnEmailPositionsStore, self.tab)
-        MainWindow.setTabOrder(self.tab, self.tblRetreiveCells)
+        MainWindow.setTabOrder(self.bttnEmailPositionsStore, self.tblRetreiveCells)
         MainWindow.setTabOrder(self.tblRetreiveCells, self.txtCellsRetreive)
         MainWindow.setTabOrder(self.txtCellsRetreive, self.bttnFindCells)
         MainWindow.setTabOrder(self.bttnFindCells, self.chkTrash)
@@ -653,6 +699,15 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "Cells Database"))
+        self.label_17.setText(_translate("MainWindow", "Database Location (can be IP address or computer name):"))
+        self.label_18.setText(_translate("MainWindow", "Username:"))
+        self.label_19.setText(_translate("MainWindow", "Password:"))
+        self.checkBox.setText(_translate("MainWindow", "Save username"))
+        self.checkBox_2.setText(_translate("MainWindow", "Save password"))
+        self.checkBox_3.setText(_translate("MainWindow", "Connect on startup"))
+        self.label_20.setText(_translate("MainWindow", "Database:"))
+        self.bttnConnect.setText(_translate("MainWindow", "Connect"))
+        self.tab.setTabText(self.tab.indexOf(self.tabDatabase), _translate("MainWindow", "Database"))
         self.cmbDewarStore.setItemText(0, _translate("MainWindow", "GR"))
         self.cmbDewarStore.setItemText(1, _translate("MainWindow", "WF"))
         self.label_8.setText(_translate("MainWindow", "Number of Positions"))
@@ -705,4 +760,3 @@ class Ui_MainWindow(object):
         self.label_4.setText(_translate("MainWindow", "Current Version:"))
         self.bttnCheckUpdates.setText(_translate("MainWindow", "Check for Updates"))
         self.tab.setTabText(self.tab.indexOf(self.tab_2), _translate("MainWindow", "About"))
-

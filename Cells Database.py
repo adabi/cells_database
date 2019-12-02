@@ -6,23 +6,27 @@ from dateutil.parser import parse
 from MainInterface import Ui_MainWindow
 from newcane import Ui_DlgNewCane
 import dbfunctions
-from dbfunctions import FindEmptyPositions, CalculateStorage, StoreCells, Database, FindCompletions
+from dbfunctions import FindEmptyPositions, CalculateStorage, StoreCells, FindCompletions, login_with_credentials
 from main_models import StoreTableModel, RetrieveTableModel
 import smtplib
 import datetime
 import subprocess
-from oauth2client.file import Storage
-import httplib2
-import apiclient
-from apiclient import discovery
+import pathlib
 from distutils.version import StrictVersion
 from DatabaseSchemeTab import Database_Scheme_Tab
 from CellLinesTab import CellLines_Tab
 from addcellsdialog import Ui_DialogAddCells
 import signal
+import socket
+
+# from oauth2client.file import Storage
+# import httplib2
+# import apiclient
+# from apiclient import discovery
 
 #Remember to enable checking updates at startup before distributing!!
 CURRENT_VERSION = "2.8.2"
+
 
 
 class CompletionThread(QtCore.QThread):
@@ -46,17 +50,12 @@ class CompletionWorker(QtCore.QObject):
 
     def complete(self, parentLineEdit):
         self.parentLineEdit = parentLineEdit
-        # A contrived workaround in order to keep all mysql database calls in the dbfunctions module.
-        DBF = Database()
-        db = DBF.DB()
-        cursor = DBF.Cursor(db)
         word = ""
         # Make sure to grab suggestions again if user changes text while worker is running.
         while word != self.parentLineEdit.text():
             word = self.parentLineEdit.text()
-            lst = FindCompletions(word, cursor)
+            lst = FindCompletions(word)
             self.sig_step.emit(lst, self.parentLineEdit)
-        DBF.Close(cursor, db)
         self.sig_done.emit()
 
 
@@ -69,6 +68,7 @@ class UpdateWorker(QtCore.QObject):
 
     def start(self):
         try:
+            '''
             credential_path = os.path.join(self.currentPath, "drive-python-quickstart.json")
             credential_path = os.path.realpath(credential_path)
             store = Storage(credential_path)
@@ -102,7 +102,8 @@ class UpdateWorker(QtCore.QObject):
                 pass
             else:
                 updateAvailable = True
-            self.sig_done.emit(updateAvailable, self.fromButton, version)
+            self.sig_done.emit(updateAvailable, self.fromButton, version)'''
+            pass
         except Exception as e:
             raise(e)
             pass
@@ -192,21 +193,28 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
     def __init__(self):
         super(MainWindow, self).__init__()
         self.setupUi(self)
-        CellLines_Tab.__init__(self)
-        self.dComboBox = DelegateDropBox(self.tblStoreCells, self.lstCellLines)
-        Database_Scheme_Tab.__init__(self)
-
-        self.updateThread = Qt.QThread()
+        self.bttnConnect.clicked.connect(self.connect_to_database)
+        self.connected_to_databse = False
+        for i in range(1,5):
+            self.tab.setTabEnabled(i, False)
 
         try:
             self.checkUpdates(fromButton=False)
         except:
             pass
 
+
+    def _init(self):
+        CellLines_Tab.__init__(self)
+        self.dComboBox = DelegateDropBox(self.tblStoreCells, self.lstCellLines)
+        Database_Scheme_Tab.__init__(self)
+
+        self.updateThread = Qt.QThread()
+
         self.lblVersion.setText(CURRENT_VERSION)
         self.bttnCheckUpdates.clicked.connect(self.checkUpdates)
         self.currentPath = os.path.split(sys.executable)[0]
-        #Auto completion objects. This section creates a thread and moves and auto completion worker into it.
+        # Auto completion objects. This section creates a thread and moves an auto completion worker into it.
         self.completer = QtWidgets.QCompleter()
         self.completionmodel = QtCore.QStringListModel()
         self.completer.setModel(self.completionmodel)
@@ -219,7 +227,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
         self.completionWorker.moveToThread(self.completionThread)
         self.cellList = []
 
-        #Store Tab stuff:
+        # Store Tab stuff:
         self.tab.setCurrentIndex(0)
         self.tblStoreCells.horizontalHeader().setStretchLastSection(True)
         self.bttnFindStorage.clicked.connect(self.FindStorage)
@@ -255,17 +263,17 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
         self.bttnEmailPositionsStore.clicked.connect(self.sendEmailStore)
         self.BttnBoxStore.button(QtWidgets.QDialogButtonBox.Apply).clicked.connect(self.StoreCellsInDB)
         self.combo_CellType.addItems(self.lstCellLines)
-        #self.txtCellsStore.textChanged.connect(self.startcompletion)
-        #self.txtCellsStore.setCompleter(self.completer)
-        #Contains a list of all similar cells in the database. Used for the LineEdit completion.
+        # self.txtCellsStore.textChanged.connect(self.startcompletion)
+        # self.txtCellsStore.setCompleter(self.completer)
+        # Contains a list of all similar cells in the database. Used for the LineEdit completion.
         self.todaysdate = datetime.date.today().strftime("%m/%d/%Y")
         self.txtDate.setText(self.todaysdate)
         self.numberofselectedStore = 0
         self.bttnAddCells.clicked.connect(self.addCells)
 
-        #~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
+        # ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~
 
-        #Retrieve Tab stuff:
+        # Retrieve Tab stuff:
 
         self.retreivetblmodel = RetrieveTableModel([])
         self.tblRetreiveCells.setModel(self.retreivetblmodel)
@@ -288,6 +296,26 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
         self.bttnBoxRetreive.button(QtWidgets.QDialogButtonBox.Apply).clicked.connect(self.retreiveCells)
         self.bttnEmailPositionsRetreive.clicked.connect(self.sendEmailRetreive)
         self.bttnBoxRetreive.clicked.connect(self.buttonboxfunctionsRetreive)
+
+    def connect_to_database(self):
+
+        username = self.txtUsername.text()
+        password = self.txtPassword.text()
+        database = self.txtDatabaseName.text()
+        host = self.txtDatabaseLocation.text()
+
+        try:
+            login_with_credentials(username, password, database, host)
+            self._init()
+            for i in range(1, 5):
+                self.tab.setTabEnabled(i, True)
+            self.bttnConnect.setEnabled(False)
+        except:
+            msgbox = QtWidgets.QMessageBox()
+            msgbox.setText("Could not connect to database. Please check location, name, and credentials.")
+            msgbox.setStandardButtons(QtWidgets.QMessageBox.Ok)
+            msgbox.exec_()
+
 
 
     def UpdateStorageCount(self):
@@ -738,6 +766,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
     def exit_app(self):
         sys.exit(0)
 
+
 def cleanup():
     msgbox = QtWidgets.QMessageBox()
     msgbox.setText("You sure you wanna exit?")
@@ -747,12 +776,6 @@ def cleanup():
         sys.exit(0)
     else:
         pass
-
-
-
-
-
-
 
 
 app = QtWidgets.QApplication(sys.argv)
