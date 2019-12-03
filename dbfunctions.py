@@ -30,7 +30,6 @@ def login_with_credentials(username, password, database, host):
 
 def FindEmptyPositions(Dewar):
 
-
     query = '''SELECT ID, Cylinder, Cane_Color, Cane_ID, Position FROM dewarupdated 
                     WHERE Available = 'T' AND Dewar = '{}' '''.format(Dewar)
     SQL_CURSOR.execute(query)
@@ -125,8 +124,6 @@ def RetrieveCells(data, trash=False):
 
 
 def RetrieveCellLines():
-
-
     query = "SELECT Cell_Line, Notes FROM celllines"
     SQL_CURSOR.execute(query)
     cellLine = SQL_CURSOR.fetchall()
@@ -160,3 +157,15 @@ def editCellLineComment(cell_line, comment):
     SQL_CURSOR.execute(query, (comment, cell_line))
     SQL_DB.commit()
 
+
+def retrieve_for_cylinder_population(dewar):
+    query = '''Select Cells, Passage, Cylinder, Cane_Color, Cane_ID, Position, Initials, Date, Comments, Available
+                  FROM dewarupdated WHERE Dewar = %s'''
+    SQL_CURSOR.execute(query, (dewar,))
+    return SQL_CURSOR.fetchall()
+
+def execute_sql_query(query):
+    SQL_CURSOR.execute(query)
+
+def commit_to_db():
+    SQL_DB.commit()

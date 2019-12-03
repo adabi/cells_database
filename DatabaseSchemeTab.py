@@ -1,16 +1,7 @@
 import sys
 from PyQt5 import QtWidgets, Qt, QtCore
-from mysql import connector
 from scheme_models import ListModel, TableModel, CylinderListModel
-import socket
-
-'''NOTE: If you are maintaining this code for some reason, I am truly, deeply, terribly sorry. This was supposed to be a quick one-day
-project and it turned into a two-month project. There is a bunch of contrived code that is there just because it works. You will also
-find no annotations to help you figure out what's going on. Abandon all hope ye who enter here'''
-
-host = socket.gethostbyname("env170519005")
-user = "database_app"
-password = 'BruceLab'
+from dbfunctions import retrieve_for_cylinder_population, execute_sql_query, commit_to_db
 
 class Changes(object):
     def __init__(self, parent=None, initval = 0):
@@ -61,12 +52,7 @@ class Database_Scheme_Tab:
             pass
         if not dewar == None:
             self.currentDewar = dewar
-        db = connector.Connect(database="Dewar", user=user, host=host, password=password)
-        cursor = db.cursor()
-        query = '''Select Cells, Passage, Cylinder, Cane_Color, Cane_ID, Position, Initials, Date, Comments, Available
-                FROM dewarupdated WHERE Dewar = %s'''
-        cursor.execute(query, (dewar,))
-        lst = cursor.fetchall()
+        lst = retrieve_for_cylinder_population(dewar)
         self.fullst = []
         i = 0
         for item in lst:
@@ -112,8 +98,7 @@ class Database_Scheme_Tab:
         self.IDsmodel.sig_changed.connect(self.dataChanged)
         self.IDsmodel.sig_invalidentry.connect(self.forceEdit, Qt.Qt.QueuedConnection)
         self.changes = 0
-        cursor.close()
-        db.close()
+
 
     def populateColors(self, index):
         self.currentCylinder = self.cylindersmodel.data[index.row()]
@@ -311,14 +296,9 @@ class Database_Scheme_Tab:
                                     "VALUES (NULL, NULL, %s, %s, %s, %s, %s,  NULL, NULL, NULL, 'F')"
                             self.queries.append([query, parameters])
 
-
-            db = connector.connect(database = "Dewar", user=user, host=host, password=password)
-            cursor = db.cursor()
             for query in self.queries:
-                cursor.execute(query[0], query[1])
-            db.commit()
-            cursor.close()
-            db.close()
+                execute_sql_query(query)
+            commit_to_db()
             self.changes = 0
             self.resetColors()
             self.UpdateStorageCount()
@@ -364,20 +344,16 @@ class Database_Scheme_Tab:
         reply = msgbox.exec_()
         if reply == QtWidgets.QMessageBox.Yes:
             try:
-                db = connector.connect(database="dewar", user="root", password="password")
-                cursor = db.cursor()
                 try:
                     query = "DROP TABLE dewarupdated{}".format(self.currentDewar)
-                    cursor.execute(query)
+                    execute_sql_query(query)
                 except:
                     pass
                 query = "CREATE TABLE dewarupdated{} LIKE storagereview".format(self.currentDewar)
-                cursor.execute(query)
+                execute_sql_query(query)
                 query = "INSERT INTO dewarupdated{} SELECT * FROM {}backup".format(self.currentDewar, self.currentDewar)
-                cursor.execute(query)
-                cursor.close()
-                db.commit()
-                db.close()
+                execute_sql_query(query)
+                commit_to_db()
                 self.populateCylinders(self.currentDewar)
                 msgbox = QtWidgets.QMessageBox()
                 msgbox.setText("Backup restored successfully!")
@@ -388,20 +364,17 @@ class Database_Scheme_Tab:
                 msgbox.exec_()
         elif reply == QtWidgets.QMessageBox.Retry:
             try:
-                db = connector.connect(database="dewar", user="root", password="password")
-                cursor = db.cursor()
+
                 try:
                     query = "DROP TABLE dewarupdated{}".format(self.currentDewar)
-                    cursor.execute(query)
+                    execute_sql_query()
                 except:
                     pass
                 query = "CREATE TABLE dewarupdated{} LIKE storagereview".format(self.currentDewar)
-                cursor.execute(query)
+                execute_sql_query()
                 query = "INSERT INTO dewarupdated{} SELECT * FROM {}backup3".format(self.currentDewar, self.currentDewar)
-                cursor.execute(query)
-                cursor.close()
-                db.commit()
-                db.close()
+                execute_sql_query()
+                commit_to_db()
                 self.populateCylinders(self.currentDewar)
                 msgbox = QtWidgets.QMessageBox()
                 msgbox.setText("Backup restored successfully!")

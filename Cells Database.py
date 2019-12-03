@@ -1,7 +1,7 @@
 from PyQt5 import Qt, QtWidgets, QtCore
 import sys
 import os
-import io
+import re
 from dateutil.parser import parse
 from MainInterface import Ui_MainWindow
 from newcane import Ui_DlgNewCane
@@ -17,7 +17,7 @@ from DatabaseSchemeTab import Database_Scheme_Tab
 from CellLinesTab import CellLines_Tab
 from addcellsdialog import Ui_DialogAddCells
 import signal
-import socket
+import keyring
 
 # from oauth2client.file import Storage
 # import httplib2
@@ -178,6 +178,7 @@ class NewCaneDialog(QtWidgets.QDialog, Ui_DlgNewCane):
             messageBox.setText("Please enter valid cane information")
             messageBox.exec_()
 
+
 class AddCellsDialog(QtWidgets.QDialog, Ui_DialogAddCells):
     sig_addcells = QtCore.pyqtSignal(list)
 
@@ -186,17 +187,18 @@ class AddCellsDialog(QtWidgets.QDialog, Ui_DialogAddCells):
         self.setupUi(self)
 
 
-
-
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, CellLines_Tab):
 
     def __init__(self):
         super(MainWindow, self).__init__()
         self.setupUi(self)
+        self.grab_fields_from_config()
         self.bttnConnect.clicked.connect(self.connect_to_database)
-        self.connected_to_databse = False
         for i in range(1,5):
             self.tab.setTabEnabled(i, False)
+
+        if self.checkConnectOnStartup.isChecked:
+            self.connect_to_database(from_button=False)
 
         try:
             self.checkUpdates(fromButton=False)
@@ -297,7 +299,40 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
         self.bttnEmailPositionsRetreive.clicked.connect(self.sendEmailRetreive)
         self.bttnBoxRetreive.clicked.connect(self.buttonboxfunctionsRetreive)
 
-    def connect_to_database(self):
+    def grab_fields_from_config(self):
+        try:
+            with open('config', 'r') as file:
+                file_contents = file.read()
+                print(file_contents)
+                dbname = re.search(r'dbname=(.*)[\n$]', file_contents)
+                if dbname:
+                    self.txtDatabaseName.setText(dbname.group(1))
+                dblocation = re.search(r'dblocation=(.*)[\n$]', file_contents)
+                if dblocation:
+                    self.txtDatabaseLocation.setText(dblocation.group(1))
+                username = re.search(r'username=(.*)[\n$]', file_contents)
+                if username:
+                    self.txtUsername.setText(username.group(1))
+                keyring.get_password("Cells Database", username.group(1))
+                saveusername = re.search(r'saveusername=(.*)[\n$]', file_contents)
+                if saveusername:
+                    self.checkSaveUsername.setChecked(saveusername.group(1) == 'True')
+                savepassword = re.search(r'savepassword=(.*)[\n$]', file_contents)
+                if savepassword:
+                    self.checkSavePassword.setCecked(savepassword.group(1) == 'True')
+                connect_on_startup = re.search(r'connectonstartup=(.*)[\n$]', file_contents)
+                if connect_on_startup:
+                    self.checkConnectOnStartup.setChecked(connect_on_startup.group(1) == 'True')
+
+
+
+        except:
+            pass
+
+
+
+
+    def connect_to_database(self, from_button=True):
 
         username = self.txtUsername.text()
         password = self.txtPassword.text()
@@ -310,11 +345,27 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
             for i in range(1, 5):
                 self.tab.setTabEnabled(i, True)
             self.bttnConnect.setEnabled(False)
+            self.lblStatus.setText("Connected")
+
+            try:
+                with open('config', 'r') as file:
+                    file_contents = file.read()
+                    default_email = re.search(r'defaultemail=(.*)[\n$]', file_contents)
+                    if default_email:
+                        self.txtEmailRetreive.setText(default_email.group(1))
+                        self.txtEmailStore.setText(default_email.group(1))
+            except:
+                pass
         except:
-            msgbox = QtWidgets.QMessageBox()
-            msgbox.setText("Could not connect to database. Please check location, name, and credentials.")
-            msgbox.setStandardButtons(QtWidgets.QMessageBox.Ok)
-            msgbox.exec_()
+            if from_button:
+                msgbox = QtWidgets.QMessageBox()
+                msgbox.setText("Could not connect to database. Please check location, name, and credentials.")
+                msgbox.setStandardButtons(QtWidgets.QMessageBox.Ok)
+                msgbox.exec_()
+
+
+    def store_fields_in_congig(self, fields_values):
+        
 
 
 
@@ -729,8 +780,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
         self.lblSelectedRetreiveLabel.setText("Selected:")
         self.lblSelectedRetreive.setText(str(self.numberofselectedRetreive))
 
-    def checkUpdates(self, checked=False, fromButton=True):
-        self.updateWorker = UpdateWorker(fromButton)
+    def checkUpdates(self):
+        self.updateWorker = UpdateWorker(True)
         self.updateWorker.sig_done.connect(self.updatedChecked)
         self.updateWorker.moveToThread(self.updateThread)
         self.updateThread.started.connect(self.updateWorker.start)

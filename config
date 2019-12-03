@@ -1,0 +1,7 @@
+dblocation=env170519005
+dbname=dewar
+username=database_app
+saveusername=True
+savepassword=True
+connectonstartup=True
+defaultemail=amjad.dabi@gmail.com
