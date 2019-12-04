@@ -1,0 +1,3 @@
+([('updater',
+   '/Users/amjad_dabi/PycharmProjects/cells_database/dist/updater',
+   'EXECUTABLE')],)

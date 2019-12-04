@@ -1,10 +1,10 @@
-# -*- mode: python -*-
+# -*- mode: python ; coding: utf-8 -*-
 
 block_cipher = None
 
 
-a = Analysis(['/Users/amjad_dabi/Google Drive/Python Projects/Database/updater_source/updater.py'],
-             pathex=['/Users/amjad_dabi/Google Drive/Python Projects/Database'],
+a = Analysis(['/Users/amjad_dabi/PycharmProjects/cells_database/updater_source/updater.py'],
+             pathex=['/Users/amjad_dabi/PycharmProjects/cells_database'],
              binaries=[],
              datas=[],
              hiddenimports=[],
@@ -13,7 +13,8 @@ a = Analysis(['/Users/amjad_dabi/Google Drive/Python Projects/Database/updater_s
              excludes=[],
              win_no_prefer_redirects=False,
              win_private_assemblies=False,
-             cipher=block_cipher)
+             cipher=block_cipher,
+             noarchive=False)
 pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
 exe = EXE(pyz,
@@ -21,10 +22,13 @@ exe = EXE(pyz,
           a.binaries,
           a.zipfiles,
           a.datas,
+          [],
           name='updater',
           debug=False,
+          bootloader_ignore_signals=False,
           strip=False,
           upx=True,
+          upx_exclude=[],
           runtime_tmpdir=None,
           console=False )
 app = BUNDLE(exe,

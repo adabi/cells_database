@@ -194,12 +194,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
         self.setupUi(self)
         self.grab_fields_from_config()
         self.bttnConnect.clicked.connect(self.connect_to_database)
+        self.bttnDisconnect.clicked.connect(self.disconnect_from_database)
         for i in range(1,5):
             self.tab.setTabEnabled(i, False)
 
         if self.checkConnectOnStartup.isChecked:
-            self.connect_to_database(from_button=False)
+            if (self.txtDatabaseLocation.text().strip() != "" and self.txtDatabaseName.text().strip() != "" and
+                    self.txtUsername.text().strip() != "" and self.txtPassword.text().strip() != ""):
 
+                self.connect_to_database(False, from_button=False)
         try:
             self.checkUpdates(fromButton=False)
         except:
@@ -303,36 +306,36 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
         try:
             with open('config', 'r') as file:
                 file_contents = file.read()
-                print(file_contents)
-                dbname = re.search(r'dbname=(.*)[\n$]', file_contents)
+                dbname = re.search(r'^dbname=(.*)$', file_contents, re.MULTILINE)
                 if dbname:
                     self.txtDatabaseName.setText(dbname.group(1))
-                dblocation = re.search(r'dblocation=(.*)[\n$]', file_contents)
+                dblocation = re.search(r'^dblocation=(.*)$', file_contents, re.MULTILINE)
                 if dblocation:
                     self.txtDatabaseLocation.setText(dblocation.group(1))
-                username = re.search(r'username=(.*)[\n$]', file_contents)
+                username = re.search(r'^username=(.*)$', file_contents, re.MULTILINE)
                 if username:
                     self.txtUsername.setText(username.group(1))
+                    try:
+                        password = keyring.get_password("Cells Database", self.txtUsername.text())
+                        if password:
+                            self.txtPassword.setText(password)
+                    except:
+                        pass
                 keyring.get_password("Cells Database", username.group(1))
-                saveusername = re.search(r'saveusername=(.*)[\n$]', file_contents)
+                saveusername = re.search(r'^saveusername=(.*)$', file_contents, re.MULTILINE)
                 if saveusername:
                     self.checkSaveUsername.setChecked(saveusername.group(1) == 'True')
-                savepassword = re.search(r'savepassword=(.*)[\n$]', file_contents)
+                savepassword = re.search(r'^savepassword=(.*)$', file_contents, re.MULTILINE)
                 if savepassword:
                     self.checkSavePassword.setCecked(savepassword.group(1) == 'True')
-                connect_on_startup = re.search(r'connectonstartup=(.*)[\n$]', file_contents)
+                connect_on_startup = re.search(r'^connectonstartup=(.*)$', file_contents, re.MULTILINE)
                 if connect_on_startup:
                     self.checkConnectOnStartup.setChecked(connect_on_startup.group(1) == 'True')
-
-
 
         except:
             pass
 
-
-
-
-    def connect_to_database(self, from_button=True):
+    def connect_to_database(self,checked, from_button=True):
 
         username = self.txtUsername.text()
         password = self.txtPassword.text()
@@ -345,17 +348,28 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
             for i in range(1, 5):
                 self.tab.setTabEnabled(i, True)
             self.bttnConnect.setEnabled(False)
+            self.bttnDisconnect.setEnabled(True)
             self.lblStatus.setText("Connected")
 
             try:
                 with open('config', 'r') as file:
                     file_contents = file.read()
-                    default_email = re.search(r'defaultemail=(.*)[\n$]', file_contents)
+                    default_email = re.search(r'^defaultemail=(.*)$', file_contents, re.MULTILINE)
+                    print(default_email)
                     if default_email:
                         self.txtEmailRetreive.setText(default_email.group(1))
                         self.txtEmailStore.setText(default_email.group(1))
-            except:
+            except Exception as e:
+                print(e)
                 pass
+
+            if from_button:
+                print("from button")
+                self.store_fields_in_config()
+            else:
+                self.tab.setCurrentIndex(1)
+
+
         except:
             if from_button:
                 msgbox = QtWidgets.QMessageBox()
@@ -363,9 +377,56 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
                 msgbox.setStandardButtons(QtWidgets.QMessageBox.Ok)
                 msgbox.exec_()
 
+    def disconnect_from_database(self):
+        self.bttnDisconnect.setEnabled(False)
+        self.lblStatus.setText("Disconnecting..")
+        for i in range(1, 5):
+            self.tab.setTabEnabled(i, False)
+        dbfunctions.close_db_connection()
 
-    def store_fields_in_congig(self, fields_values):
-        
+        self.lblStatus.setText("Disconnected")
+        self.bttnConnect.setEnabled(True)
+
+    def store_fields_in_config(self):
+
+        # If there is an email in the config file, stash it first
+        stored_email = None
+        try:
+            with open('config', 'r') as file:
+                file_contents = file.read()
+                email_match = re.search(r'^defaultemail=(.*)$', file_contents, re.MULTILINE)
+                if email_match:
+                    stored_email = email_match.group(1)
+        except:
+            pass
+
+        string_to_store = []
+        if self.checkSaveDatabase.isChecked():
+            string_to_store.append(f'dblocation={self.txtDatabaseLocation.text()}\n')
+            string_to_store.append(f'dbname={self.txtDatabaseName.text()}\n')
+
+        if self.checkSaveUsername.isChecked():
+            string_to_store.append(f'username={self.txtUsername.text()}\n')
+
+        string_to_store.append(f'saveusername={self.checkSaveUsername.isChecked()}\n'
+                               f'savepassword={self.checkSavePassword.isChecked()}\n'
+                               f'connectonstartup={self.checkConnectOnStartup.isChecked()}\n')
+
+        if self.checkSavePassword.isChecked():
+            if self.txtUsername.text() != "" and self.txtPassword.text() != "":
+                keyring.set_password("Cells Database", self.txtUsername.text(), self.txtPassword.text())
+
+        if stored_email:
+            string_to_store.append(f'defaultemail={stored_email}')
+        try:
+            with open('config', 'w+') as file:
+                buff = ''.join(string_to_store)
+                file.write(buff)
+        except Exception as e:
+            raise e
+
+
+
 
 
 

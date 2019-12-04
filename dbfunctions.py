@@ -1,6 +1,6 @@
 import mysql.connector
 import datetime
-import socket
+import re
 
 # user = "database_app"
 # host = socket.gethostbyname("env170519005")
@@ -169,3 +169,7 @@ def execute_sql_query(query):
 
 def commit_to_db():
     SQL_DB.commit()
+
+def close_db_connection():
+    SQL_CURSOR.close()
+    SQL_DB.close()

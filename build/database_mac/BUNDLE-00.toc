@@ -1,0 +1,3 @@
+([('Cells Database',
+   '/Users/amjad_dabi/PycharmProjects/cells_database/dist/Cells Database',
+   'EXECUTABLE')],)
