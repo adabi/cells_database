@@ -1,17 +1,12 @@
 import mysql.connector
 import datetime
-import re
-
-# user = "database_app"
-# host = socket.gethostbyname("env170519005")
-# password = ''
 
 SQL_DB = None
 SQL_CURSOR = None
 
 
 def login_with_credentials(username, password, database, host):
-    
+
     global SQL_DB
     global SQL_CURSOR
 
@@ -20,7 +15,7 @@ def login_with_credentials(username, password, database, host):
         SQL_CURSOR = SQL_DB.cursor()
     except Exception as e:
         print(e)
-    
+
     if SQL_DB and SQL_CURSOR:
         return True
     else:
@@ -29,7 +24,6 @@ def login_with_credentials(username, password, database, host):
 
 
 def FindEmptyPositions(Dewar):
-
     query = '''SELECT ID, Cylinder, Cane_Color, Cane_ID, Position FROM dewarupdated 
                     WHERE Available = 'T' AND Dewar = '{}' '''.format(Dewar)
     SQL_CURSOR.execute(query)
@@ -103,7 +97,6 @@ def FindCells(Celltype):
 
 def RetrieveCells(data, trash=False):
 
-    SQL_CURSOR= SQL_DB.SQL_CURSOR()
     todaydate = (datetime.date.today()).strftime("%m/%d/%Y")
     if trash:
         Comment = "Trashed {}".format(todaydate)

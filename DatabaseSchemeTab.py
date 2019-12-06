@@ -38,7 +38,6 @@ class Database_Scheme_Tab:
         self.buttonBox.button(QtWidgets.QDialogButtonBox.Apply).clicked.connect(self.commitChanges)
         self.bttnDeleteID.clicked.connect(self.deleteID)
         self.buttonBox.button(QtWidgets.QDialogButtonBox.Cancel).clicked.connect(self.cancelChanges)
-        #self.bttnRestore.clicked.connect(self.restore)
         self.bttnCopyDown.clicked.connect(self.copy_down)
         self.bttnCopyUp.clicked.connect(self.copy_up)
 
@@ -336,53 +335,6 @@ class Database_Scheme_Tab:
     def resetColors(self):
         self.colorsmodel.colors = {}
         self.IDsmodel.colors = {}
-
-    def restore(self):
-        msgbox = QtWidgets.QMessageBox()
-        msgbox.setStandardButtons(QtWidgets.QMessageBox.No | QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.Retry)
-        msgbox.setText("Are you sure you want to restore the backup?")
-        reply = msgbox.exec_()
-        if reply == QtWidgets.QMessageBox.Yes:
-            try:
-                try:
-                    query = "DROP TABLE dewarupdated{}".format(self.currentDewar)
-                    execute_sql_query(query)
-                except:
-                    pass
-                query = "CREATE TABLE dewarupdated{} LIKE storagereview".format(self.currentDewar)
-                execute_sql_query(query)
-                query = "INSERT INTO dewarupdated{} SELECT * FROM {}backup".format(self.currentDewar, self.currentDewar)
-                execute_sql_query(query)
-                commit_to_db()
-                self.populateCylinders(self.currentDewar)
-                msgbox = QtWidgets.QMessageBox()
-                msgbox.setText("Backup restored successfully!")
-                msgbox.exec_()
-            except:
-                msgbox = QtWidgets.QMessageBox()
-                msgbox.setText("Something went wrong")
-                msgbox.exec_()
-        elif reply == QtWidgets.QMessageBox.Retry:
-            try:
-
-                try:
-                    query = "DROP TABLE dewarupdated{}".format(self.currentDewar)
-                    execute_sql_query()
-                except:
-                    pass
-                query = "CREATE TABLE dewarupdated{} LIKE storagereview".format(self.currentDewar)
-                execute_sql_query()
-                query = "INSERT INTO dewarupdated{} SELECT * FROM {}backup3".format(self.currentDewar, self.currentDewar)
-                execute_sql_query()
-                commit_to_db()
-                self.populateCylinders(self.currentDewar)
-                msgbox = QtWidgets.QMessageBox()
-                msgbox.setText("Backup restored successfully!")
-                msgbox.exec_()
-            except:
-                msgbox = QtWidgets.QMessageBox()
-                msgbox.setText("Something went wrong")
-                msgbox.exec_()
 
 
     def update_changes_count(self):

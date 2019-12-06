@@ -1,16 +1,15 @@
 from PyQt5 import QtCore, QtWidgets, QtGui
 from dateutil.parser import parse
 
-
 class StoreTableModel(QtCore.QAbstractTableModel):
     sig_NoMorePositions = QtCore.pyqtSignal()
 
     def __init__(self, data, numberofRows):
         super(StoreTableModel, self).__init__()
+
         self.data = data
         for item in self.data:
             item.append(0)
-
         self.numberofRows = numberofRows
         self.headers = ["", "Cells", "Passage", "Dewar", "Cylinder", "Cane Color", "Cane ID", "Position", "Initials", "Date", "Comments"]
         self.rowsColored = False
@@ -38,6 +37,7 @@ class StoreTableModel(QtCore.QAbstractTableModel):
             else:
                 return QtCore.Qt.AlignVCenter
         elif role == QtCore.Qt.CheckStateRole and QModelIndex.column() == 0:
+            print(self.data[row])
             if self.data[row][11] == 1:
                 return QtCore.Qt.Checked
             else:

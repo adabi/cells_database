@@ -17,17 +17,14 @@ from DatabaseSchemeTab import Database_Scheme_Tab
 from CellLinesTab import CellLines_Tab
 from addcellsdialog import Ui_DialogAddCells
 import signal
-import keyring
+from keyring import set_keyring
+import keyring.backends.OS_X
 
-# from oauth2client.file import Storage
-# import httplib2
-# import apiclient
-# from apiclient import discovery
 
 #Remember to enable checking updates at startup before distributing!!
 CURRENT_VERSION = "2.8.2"
 
-
+set_keyring(keyring.backends.OS_X.Keyring())
 
 class CompletionThread(QtCore.QThread):
 
@@ -39,7 +36,8 @@ class CompletionThread(QtCore.QThread):
     def start(self, caller, priority=None):
         self.started.emit(caller)
 
-
+CURRENT_PATH = pathlib.Path(os.path.split(sys.executable)[0])
+print(CURRENT_PATH)
 #A worker that retrieves cells in the database and completes the LineEdit
 class CompletionWorker(QtCore.QObject):
     sig_step = QtCore.pyqtSignal(list, QtCore.QObject)
@@ -214,7 +212,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
         self.dComboBox = DelegateDropBox(self.tblStoreCells, self.lstCellLines)
         Database_Scheme_Tab.__init__(self)
 
-        self.updateThread = Qt.QThread()
+        #self.updateThread = Qt.QThread()
 
         self.lblVersion.setText(CURRENT_VERSION)
         self.bttnCheckUpdates.clicked.connect(self.checkUpdates)
@@ -304,7 +302,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
 
     def grab_fields_from_config(self):
         try:
-            with open('config', 'r') as file:
+            with open(CURRENT_PATH / 'config' , 'r') as file:
                 file_contents = file.read()
                 dbname = re.search(r'^dbname=(.*)$', file_contents, re.MULTILINE)
                 if dbname:
@@ -352,10 +350,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
             self.lblStatus.setText("Connected")
 
             try:
-                with open('config', 'r') as file:
+                with open(CURRENT_PATH / 'config', 'r') as file:
                     file_contents = file.read()
                     default_email = re.search(r'^defaultemail=(.*)$', file_contents, re.MULTILINE)
-                    print(default_email)
                     if default_email:
                         self.txtEmailRetreive.setText(default_email.group(1))
                         self.txtEmailStore.setText(default_email.group(1))
@@ -392,7 +389,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
         # If there is an email in the config file, stash it first
         stored_email = None
         try:
-            with open('config', 'r') as file:
+            with open(CURRENT_PATH / 'config', 'r') as file:
                 file_contents = file.read()
                 email_match = re.search(r'^defaultemail=(.*)$', file_contents, re.MULTILINE)
                 if email_match:
@@ -419,7 +416,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
         if stored_email:
             string_to_store.append(f'defaultemail={stored_email}')
         try:
-            with open('config', 'w+') as file:
+            with open(CURRENT_PATH / 'config', 'w+') as file:
                 buff = ''.join(string_to_store)
                 file.write(buff)
         except Exception as e:
@@ -716,6 +713,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
         self.numberofselectedRetreive = len(self.retreivetblmodel.data)
         self.lblSelectedRetreiveLabel.setText("Selected")
         self.lblSelectedRetreive.setText(str(self.numberofselectedRetreive))
+        dbfunctions.close_db_connection()
 
 
     def startcompletion(self):
