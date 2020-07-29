@@ -1,7 +1,8 @@
 import sys
 from PyQt5 import QtWidgets, Qt, QtCore
 from scheme_models import ListModel, TableModel, CylinderListModel
-from dbfunctions import retrieve_for_cylinder_population, execute_sql_query, commit_to_db
+from dbfunctions import retrieve_for_cylinder_population, execute_sql_query, commit_to_db, retrieve_for_backup
+import pandas as pd
 
 class Changes(object):
     def __init__(self, parent=None, initval = 0):
@@ -40,6 +41,7 @@ class Database_Scheme_Tab:
         self.buttonBox.button(QtWidgets.QDialogButtonBox.Cancel).clicked.connect(self.cancelChanges)
         self.bttnCopyDown.clicked.connect(self.copy_down)
         self.bttnCopyUp.clicked.connect(self.copy_up)
+        self.bttnBackupDB.clicked.connect(self.backup_db)
 
 
     def populateCylinders(self, dewar=None):
@@ -376,3 +378,23 @@ class Database_Scheme_Tab:
                         self.positionsModel.setData(index, str(self.positionsModel.data[self.positionsModel.display][bottom_row][column]))
                     else:
                         self.positionsModel.setData(index, self.positionsModel.data[self.positionsModel.display][bottom_row][column])
+
+    def backup_db(self):
+        lst = retrieve_for_backup()
+        data_dict = {}
+        field_names = ['Dewar', 'Cells', 'Passage', 'Cylinder', 'Cane_Color', 'Cane_ID', 'Position', 'Initials', 'Date', 'Comments']
+        for i,field_name in enumerate(field_names):
+            data_dict[field_name] = [x[i] for x in lst]
+        df = pd.DataFrame(data=data_dict)
+        file_save_dialog = QtWidgets.QFileDialog()
+        file_save_dialog.setAcceptMode(QtWidgets.QFileDialog.AcceptSave)
+        file_save_dialog.setNameFilter("CSV (*.csv)")
+        file_save_dialog.setDefaultSuffix("csv")
+        if file_save_dialog.exec():
+            file_save_path = file_save_dialog.selectedFiles()[0]
+            df.to_csv(path_or_buf=file_save_path, index=False)
+            msgbox = QtWidgets.QMessageBox()
+            msgbox.setText("File Save Successful")
+            msgbox.setStandardButtons(QtWidgets.QMessageBox.Ok)
+            msgbox.exec_()
+

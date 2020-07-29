@@ -6,7 +6,7 @@ from dateutil.parser import parse
 from interface.MainInterface import Ui_MainWindow
 from interface.newcane import Ui_DlgNewCane
 import dbfunctions
-from dbfunctions import FindEmptyPositions, CalculateStorage, StoreCells, FindCompletions, login_with_credentials
+from dbfunctions import FindEmptyPositions, CalculateStorage, StoreCells, FindCompletions, login_with_credentials, retrieve_for_cylinder_population
 from main_models import StoreTableModel, RetrieveTableModel
 import smtplib
 import datetime
@@ -21,7 +21,7 @@ import keyring.backends.OS_X
 
 
 #Remember to enable checking updates at startup before distributing!!
-CURRENT_VERSION = "2.8.2"
+CURRENT_VERSION = "2.9"
 
 set_keyring(keyring.backends.OS_X.Keyring())
 
@@ -36,7 +36,7 @@ class CompletionThread(QtCore.QThread):
         self.started.emit(caller)
 
 CURRENT_PATH = pathlib.Path(os.path.split(sys.executable)[0])
-print(CURRENT_PATH)
+
 #A worker that retrieves cells in the database and completes the LineEdit
 class CompletionWorker(QtCore.QObject):
     sig_step = QtCore.pyqtSignal(list, QtCore.QObject)
@@ -189,9 +189,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
     def __init__(self):
         super(MainWindow, self).__init__()
         self.setupUi(self)
+        self.lblVersion.setText(CURRENT_VERSION)
         self.grab_fields_from_config()
         self.bttnConnect.clicked.connect(self.connect_to_database)
         self.bttnDisconnect.clicked.connect(self.disconnect_from_database)
+
         for i in range(1,5):
             self.tab.setTabEnabled(i, False)
 
@@ -200,10 +202,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
                     self.txtUsername.text().strip() != "" and self.txtPassword.text().strip() != ""):
 
                 self.connect_to_database(False, from_button=False)
-        try:
-            self.checkUpdates(fromButton=False)
-        except:
-            pass
 
 
     def _init(self):
@@ -211,10 +209,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
         self.dComboBox = DelegateDropBox(self.tblStoreCells, self.lstCellLines)
         Database_Scheme_Tab.__init__(self)
 
-        #self.updateThread = Qt.QThread()
-
-        self.lblVersion.setText(CURRENT_VERSION)
-        self.bttnCheckUpdates.clicked.connect(self.checkUpdates)
+        lst = retrieve_for_cylinder_population("GR")
+        print(lst)
         self.currentPath = os.path.split(sys.executable)[0]
         # Auto completion objects. This section creates a thread and moves an auto completion worker into it.
         self.completer = QtWidgets.QCompleter()
@@ -504,7 +500,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
             msgbox = QtWidgets.QMessageBox()
             msgbox.setText("Email sent successfully!")
             msgbox.exec_()
-        except:
+        except Exception as E:
+            print(E)
             msgbox = QtWidgets.QMessageBox()
             msgbox.setText("Something went wrong. Email could not be sent!")
             msgbox.exec_()
@@ -837,31 +834,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
 
         self.lblSelectedRetreiveLabel.setText("Selected:")
         self.lblSelectedRetreive.setText(str(self.numberofselectedRetreive))
-
-    def checkUpdates(self):
-        self.updateWorker = UpdateWorker(True)
-        self.updateWorker.sig_done.connect(self.updatedChecked)
-        self.updateWorker.moveToThread(self.updateThread)
-        self.updateThread.started.connect(self.updateWorker.start)
-        self.updateThread.start()
-
-    def updatedChecked(self, update_available, from_button, version):
-        self.updateThread.quit()
-        msgbox = QtWidgets.QMessageBox()
-        if update_available:
-            msgbox.setText("A newer version ({}) is available. Would you like to update?".format(version))
-            msgbox.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
-            decision = msgbox.exec_()
-            if decision == QtWidgets.QMessageBox.Yes:
-                updaterPath = os.path.join(self.currentPath, "updater")
-                updaterPath = os.path.realpath(updaterPath)
-                subprocess.Popen(['nohup', updaterPath], shell=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                #subprocess.Popen(updaterPath)
-                sys.exit(0)
-        else:
-            if from_button:
-                msgbox.setText("No updates available.")
-                msgbox.exec_()
 
     def addCells(self):
         Date = self.txtDate.text()

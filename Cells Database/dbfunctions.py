@@ -157,6 +157,13 @@ def retrieve_for_cylinder_population(dewar):
     SQL_CURSOR.execute(query, (dewar,))
     return SQL_CURSOR.fetchall()
 
+
+def retrieve_for_backup():
+    query = '''Select Dewar, Cells, Passage, Cylinder, Cane_Color, Cane_ID, Position, Initials, Date, Comments 
+    FROM dewarupdated'''
+    SQL_CURSOR.execute(query)
+    return SQL_CURSOR.fetchall()
+
 def execute_sql_query(query):
     SQL_CURSOR.execute(query)
 

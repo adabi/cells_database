@@ -37,7 +37,6 @@ class StoreTableModel(QtCore.QAbstractTableModel):
             else:
                 return QtCore.Qt.AlignVCenter
         elif role == QtCore.Qt.CheckStateRole and QModelIndex.column() == 0:
-            print(self.data[row])
             if self.data[row][11] == 1:
                 return QtCore.Qt.Checked
             else:

@@ -23,7 +23,7 @@ alignment: left;
 }</string>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>3</number>
       </property>
       <property name="usesScrollButtons">
        <bool>false</bool>
@@ -505,16 +505,6 @@ alignment: left;
              </property>
             </widget>
            </item>
-           <item>
-            <widget class="QCheckBox" name="checkSaveEmailStore">
-             <property name="text">
-              <string>Save Email</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
           </layout>
          </widget>
         </item>
@@ -795,16 +785,6 @@ alignment: left;
              </property>
             </widget>
            </item>
-           <item>
-            <widget class="QCheckBox" name="checkSaveEmailRetreive">
-             <property name="text">
-              <string>Save Email</string>
-             </property>
-             <property name="checked">
-              <bool>true</bool>
-             </property>
-            </widget>
-           </item>
           </layout>
          </widget>
         </item>
@@ -815,7 +795,7 @@ alignment: left;
         <string>Database Scheme</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_6">
-        <item row="0" column="0">
+        <item row="0" column="0" alignment="Qt::AlignLeft">
          <widget class="QWidget" name="horizontalWidget" native="true">
           <layout class="QHBoxLayout" name="horizontalLayout_11">
            <item>
@@ -852,6 +832,19 @@ alignment: left;
                <string>WF</string>
               </property>
              </item>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="bttnBackupDB">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Backup Databse</string>
+             </property>
             </widget>
            </item>
           </layout>
@@ -1214,19 +1207,6 @@ alignment: left;
              </layout>
             </widget>
            </item>
-           <item>
-            <widget class="QPushButton" name="bttnCheckUpdates">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="text">
-              <string>Check for Updates</string>
-             </property>
-            </widget>
-           </item>
           </layout>
          </widget>
         </item>
@@ -1273,7 +1253,6 @@ alignment: left;
   <tabstop>lstCylinders</tabstop>
   <tabstop>lstColor</tabstop>
   <tabstop>tblPositions</tabstop>
-  <tabstop>bttnCheckUpdates</tabstop>
  </tabstops>
  <resources/>
  <connections/>

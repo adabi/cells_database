@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'MainInterface.ui'
 #
-# Created by: PyQt5 UI code generator 5.13.2
+# Created by: PyQt5 UI code generator 5.14.2
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -276,10 +276,6 @@ class Ui_MainWindow(object):
         self.bttnEmailPositionsStore.setSizePolicy(sizePolicy)
         self.bttnEmailPositionsStore.setObjectName("bttnEmailPositionsStore")
         self.horizontalLayout_5.addWidget(self.bttnEmailPositionsStore)
-        self.checkSaveEmailStore = QtWidgets.QCheckBox(self.emailWidget)
-        self.checkSaveEmailStore.setChecked(True)
-        self.checkSaveEmailStore.setObjectName("checkSaveEmailStore")
-        self.horizontalLayout_5.addWidget(self.checkSaveEmailStore)
         self.gridLayout_8.addWidget(self.emailWidget, 4, 0, 1, 2, QtCore.Qt.AlignLeft)
         self.functionsWidget = QtWidgets.QWidget(self.tabStore)
         self.functionsWidget.setObjectName("functionsWidget")
@@ -450,10 +446,6 @@ class Ui_MainWindow(object):
         self.bttnEmailPositionsRetreive.setSizePolicy(sizePolicy)
         self.bttnEmailPositionsRetreive.setObjectName("bttnEmailPositionsRetreive")
         self.horizontalLayout_7.addWidget(self.bttnEmailPositionsRetreive, 0, QtCore.Qt.AlignLeft)
-        self.checkSaveEmailRetreive = QtWidgets.QCheckBox(self.horizontalWidget_4)
-        self.checkSaveEmailRetreive.setChecked(True)
-        self.checkSaveEmailRetreive.setObjectName("checkSaveEmailRetreive")
-        self.horizontalLayout_7.addWidget(self.checkSaveEmailRetreive)
         self.gridLayout.addWidget(self.horizontalWidget_4, 3, 0, 1, 1, QtCore.Qt.AlignLeft)
         self.tab.addTab(self.tabRetreive, "")
         self.tabScheme = QtWidgets.QWidget()
@@ -480,7 +472,15 @@ class Ui_MainWindow(object):
         self.combo_Dewar.addItem("")
         self.combo_Dewar.addItem("")
         self.horizontalLayout_11.addWidget(self.combo_Dewar, 0, QtCore.Qt.AlignLeft)
-        self.gridLayout_6.addWidget(self.horizontalWidget, 0, 0, 1, 1)
+        self.bttnBackupDB = QtWidgets.QPushButton(self.horizontalWidget)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.bttnBackupDB.sizePolicy().hasHeightForWidth())
+        self.bttnBackupDB.setSizePolicy(sizePolicy)
+        self.bttnBackupDB.setObjectName("bttnBackupDB")
+        self.horizontalLayout_11.addWidget(self.bttnBackupDB)
+        self.gridLayout_6.addWidget(self.horizontalWidget, 0, 0, 1, 1, QtCore.Qt.AlignLeft)
         self.horizontalLayout_10 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_10.setObjectName("horizontalLayout_10")
         self.label_13 = QtWidgets.QLabel(self.tabScheme)
@@ -670,14 +670,6 @@ class Ui_MainWindow(object):
         self.lblVersion.setObjectName("lblVersion")
         self.horizontalLayout_9.addWidget(self.lblVersion)
         self.verticalLayout.addWidget(self.horizontalWidget1, 0, QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
-        self.bttnCheckUpdates = QtWidgets.QPushButton(self.verticalWidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Maximum, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.bttnCheckUpdates.sizePolicy().hasHeightForWidth())
-        self.bttnCheckUpdates.setSizePolicy(sizePolicy)
-        self.bttnCheckUpdates.setObjectName("bttnCheckUpdates")
-        self.verticalLayout.addWidget(self.bttnCheckUpdates)
         self.gridLayout_7.addWidget(self.verticalWidget, 0, 0, 1, 1, QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
         self.tab.addTab(self.tab_2, "")
         self.horizontalLayout.addWidget(self.tab)
@@ -687,7 +679,7 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusBar)
 
         self.retranslateUi(MainWindow)
-        self.tab.setCurrentIndex(2)
+        self.tab.setCurrentIndex(3)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
         MainWindow.setTabOrder(self.spnNumberStore, self.cmbDewarStore)
         MainWindow.setTabOrder(self.cmbDewarStore, self.bttnFindStorage)
@@ -722,7 +714,6 @@ class Ui_MainWindow(object):
         MainWindow.setTabOrder(self.bttnNewID, self.lstCylinders)
         MainWindow.setTabOrder(self.lstCylinders, self.lstColor)
         MainWindow.setTabOrder(self.lstColor, self.tblPositions)
-        MainWindow.setTabOrder(self.tblPositions, self.bttnCheckUpdates)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -752,7 +743,6 @@ class Ui_MainWindow(object):
         self.bttnFindStorage.setText(_translate("MainWindow", "Find Storage"))
         self.label_5.setText(_translate("MainWindow", "Dewar"))
         self.bttnEmailPositionsStore.setText(_translate("MainWindow", "Email Positions"))
-        self.checkSaveEmailStore.setText(_translate("MainWindow", "Save Email"))
         self.bttnSelectAllStore.setText(_translate("MainWindow", "Select All"))
         self.bttnDeselectAllStore.setText(_translate("MainWindow", "Deselect All"))
         self.bttnAnotherPositionStore.setText(_translate("MainWindow", "Find Another Position"))
@@ -766,11 +756,11 @@ class Ui_MainWindow(object):
         self.bttnDeselectAllRetreive.setText(_translate("MainWindow", "Deselect All"))
         self.bttnRetreive.setText(_translate("MainWindow", "Retrieve"))
         self.bttnEmailPositionsRetreive.setText(_translate("MainWindow", "Email Positions"))
-        self.checkSaveEmailRetreive.setText(_translate("MainWindow", "Save Email"))
         self.tab.setTabText(self.tab.indexOf(self.tabRetreive), _translate("MainWindow", "Retreive Cells"))
         self.label_14.setText(_translate("MainWindow", "Dewar"))
         self.combo_Dewar.setItemText(0, _translate("MainWindow", "GR"))
         self.combo_Dewar.setItemText(1, _translate("MainWindow", "WF"))
+        self.bttnBackupDB.setText(_translate("MainWindow", "Backup Databse"))
         self.label_13.setText(_translate("MainWindow", "Changes:"))
         self.lblChanges.setText(_translate("MainWindow", "0"))
         self.lblBlue.setText(_translate("MainWindow", "Changed"))
@@ -791,5 +781,4 @@ class Ui_MainWindow(object):
         self.bttnDeleteCellLine.setText(_translate("MainWindow", "Delete "))
         self.tab.setTabText(self.tab.indexOf(self.tabCellLines), _translate("MainWindow", "Cell Lines"))
         self.label_4.setText(_translate("MainWindow", "Current Version:"))
-        self.bttnCheckUpdates.setText(_translate("MainWindow", "Check for Updates"))
         self.tab.setTabText(self.tab.indexOf(self.tab_2), _translate("MainWindow", "About"))
