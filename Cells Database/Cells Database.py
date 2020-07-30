@@ -10,20 +10,24 @@ from dbfunctions import FindEmptyPositions, CalculateStorage, StoreCells, FindCo
 from main_models import StoreTableModel, RetrieveTableModel
 import smtplib
 import datetime
-import subprocess
+import platform
 import pathlib
 from DatabaseSchemeTab import Database_Scheme_Tab
 from CellLinesTab import CellLines_Tab
 from interface.addcellsdialog import Ui_DialogAddCells
 import signal
 from keyring import set_keyring
-import keyring.backends.OS_X
+from keyring.backends import OS_X, Windows
 
 
 #Remember to enable checking updates at startup before distributing!!
 CURRENT_VERSION = "2.9"
 
-set_keyring(keyring.backends.OS_X.Keyring())
+if platform.system() == "Darwin":
+    set_keyring(OS_X.Keyring())
+elif platform.system() == "Windows":
+    set_keyring(Windows.WinVaultKeyring())
+
 
 class CompletionThread(QtCore.QThread):
 
@@ -193,6 +197,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
         self.grab_fields_from_config()
         self.bttnConnect.clicked.connect(self.connect_to_database)
         self.bttnDisconnect.clicked.connect(self.disconnect_from_database)
+        self.tab.setCurrentIndex(0)
 
         for i in range(1,5):
             self.tab.setTabEnabled(i, False)
@@ -202,7 +207,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
                     self.txtUsername.text().strip() != "" and self.txtPassword.text().strip() != ""):
 
                 self.connect_to_database(False, from_button=False)
-
 
     def _init(self):
         CellLines_Tab.__init__(self)
@@ -344,16 +348,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
             self.bttnDisconnect.setEnabled(True)
             self.lblStatus.setText("Connected")
 
-            try:
-                with open(CURRENT_PATH / 'config', 'r') as file:
-                    file_contents = file.read()
-                    default_email = re.search(r'^defaultemail=(.*)$', file_contents, re.MULTILINE)
-                    if default_email:
-                        self.txtEmailRetreive.setText(default_email.group(1))
-                        self.txtEmailStore.setText(default_email.group(1))
-            except Exception as e:
-                print(e)
-                pass
 
             if from_button:
                 print("from button")
