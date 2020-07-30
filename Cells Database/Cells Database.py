@@ -16,6 +16,7 @@ from DatabaseSchemeTab import Database_Scheme_Tab
 from CellLinesTab import CellLines_Tab
 from interface.addcellsdialog import Ui_DialogAddCells
 import signal
+import keyring
 from keyring import set_keyring
 from keyring.backends import OS_X, Windows
 
@@ -205,7 +206,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
         if self.checkConnectOnStartup.isChecked:
             if (self.txtDatabaseLocation.text().strip() != "" and self.txtDatabaseName.text().strip() != "" and
                     self.txtUsername.text().strip() != "" and self.txtPassword.text().strip() != ""):
-
                 self.connect_to_database(False, from_button=False)
 
     def _init(self):
@@ -214,7 +214,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
         Database_Scheme_Tab.__init__(self)
 
         lst = retrieve_for_cylinder_population("GR")
-        print(lst)
         self.currentPath = os.path.split(sys.executable)[0]
         # Auto completion objects. This section creates a thread and moves an auto completion worker into it.
         self.completer = QtWidgets.QCompleter()
@@ -332,13 +331,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
         except:
             pass
 
-    def connect_to_database(self,checked, from_button=True):
+    def connect_to_database(self, checked, from_button=True):
 
         username = self.txtUsername.text()
         password = self.txtPassword.text()
         database = self.txtDatabaseName.text()
         host = self.txtDatabaseLocation.text()
-
         try:
             login_with_credentials(username, password, database, host)
             self._init()
@@ -356,7 +354,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
                 self.tab.setCurrentIndex(1)
 
 
-        except:
+        except Exception as E:
+            print(E)
             if from_button:
                 msgbox = QtWidgets.QMessageBox()
                 msgbox.setText("Could not connect to database. Please check location, name, and credentials.")
@@ -375,17 +374,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
 
     def store_fields_in_config(self):
 
-        # If there is an email in the config file, stash it first
-        stored_email = None
-        try:
-            with open(CURRENT_PATH / 'config', 'r') as file:
-                file_contents = file.read()
-                email_match = re.search(r'^defaultemail=(.*)$', file_contents, re.MULTILINE)
-                if email_match:
-                    stored_email = email_match.group(1)
-        except:
-            pass
-
+        print("Storing")
         string_to_store = []
         if self.checkSaveDatabase.isChecked():
             string_to_store.append(f'dblocation={self.txtDatabaseLocation.text()}\n')
@@ -402,13 +391,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
             if self.txtUsername.text() != "" and self.txtPassword.text() != "":
                 keyring.set_password("Cells Database", self.txtUsername.text(), self.txtPassword.text())
 
-        if stored_email:
-            string_to_store.append(f'defaultemail={stored_email}')
         try:
             with open(CURRENT_PATH / 'config', 'w+') as file:
                 buff = ''.join(string_to_store)
                 file.write(buff)
         except Exception as e:
+            print(e)
             raise e
 
 
@@ -594,6 +582,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
 
     def keyPressEvent(self, QKeyEvent):
         if QKeyEvent.key() == QtCore.Qt.Key_Return:
+            if self.tab.currentIndex() == 0:
+                self.connect_to_database(False, from_button=True)
             if not (self.tblStoreCells.hasFocus() or self.tblRetreiveCells.hasFocus()):
                 if self.txtEmailStore.hasFocus():
                     self.bttnEmailPositionsStore.animateClick()
@@ -603,7 +593,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
                     or self.txtDate.hasFocus() or self.txtComments.hasFocus()):
                     self.bttnAddCells.animateClick()
                 else:
-                    if self.tab.currentIndex() == 0:
+                    if self.tab.currentIndex() == 1:
                         self.bttnFindStorage.animateClick()
                     else:
                         self.bttnFindCells.animateClick()
