@@ -12,6 +12,7 @@ import smtplib
 import datetime
 import platform
 import pathlib
+import win32timezone
 from DatabaseSchemeTab import Database_Scheme_Tab
 from CellLinesTab import CellLines_Tab
 from interface.addcellsdialog import Ui_DialogAddCells
@@ -19,7 +20,6 @@ import signal
 import keyring
 from keyring import set_keyring
 from keyring.backends import OS_X, Windows
-
 
 #Remember to enable checking updates at startup before distributing!!
 CURRENT_VERSION = "2.9"
@@ -50,7 +50,7 @@ class CompletionWorker(QtCore.QObject):
     def __init__(self):
         super(CompletionWorker, self).__init__()
 
-    def complete(self, parentLineEdit):
+    def run(self, parentLineEdit):
         self.parentLineEdit = parentLineEdit
         word = ""
         # Make sure to grab suggestions again if user changes text while worker is running.
@@ -222,10 +222,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
         self.completer.setCompletionMode(QtWidgets.QCompleter.UnfilteredPopupCompletion)
         self.completionWorker = CompletionWorker()
         self.completionThread = CompletionThread()
+        self.completionThread.started.connect(self.completionWorker.run)
         self.completionWorker.sig_step.connect(self.populateCells)
         self.completionWorker.sig_done.connect(self.completionThread.quit)
-        self.completionThread.started.connect(self.completionWorker.complete)
         self.completionWorker.moveToThread(self.completionThread)
+
         self.cellList = []
 
         # Store Tab stuff:
@@ -338,7 +339,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
         database = self.txtDatabaseName.text()
         host = self.txtDatabaseLocation.text()
         try:
-            login_with_credentials(username, password, database, host)
+            result = login_with_credentials(username, password, database, host)
             self._init()
             for i in range(1, 5):
                 self.tab.setTabEnabled(i, True)
@@ -346,21 +347,23 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
             self.bttnDisconnect.setEnabled(True)
             self.lblStatus.setText("Connected")
 
-
             if from_button:
-                print("from button")
                 self.store_fields_in_config()
-            else:
-                self.tab.setCurrentIndex(1)
 
+            self.tab.setCurrentIndex(1)
 
         except Exception as E:
+            if  result:
+                errmsg = str(E)
+            else:
+                errmsg = str(result)
             print(E)
             if from_button:
                 msgbox = QtWidgets.QMessageBox()
-                msgbox.setText("Could not connect to database. Please check location, name, and credentials.")
+                msgbox.setText(errmsg)
                 msgbox.setStandardButtons(QtWidgets.QMessageBox.Ok)
                 msgbox.exec_()
+
 
     def disconnect_from_database(self):
         self.bttnDisconnect.setEnabled(False)
@@ -436,7 +439,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
                     item.insert(9, None)
                     item.insert(10, "")
                 self.storetblmodel = StoreTableModel(data, self.number_of_positions)
-                self.completer.complete()
                 self.storetblmodel.sig_NoMorePositions.connect(self.noMorePositions)
                 self.storetblmodel.dataChanged.connect(self.updateSelectedStore)
                 self.tblStoreCells.setModel(self.storetblmodel)
@@ -693,7 +695,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
         self.numberofselectedRetreive = len(self.retreivetblmodel.data)
         self.lblSelectedRetreiveLabel.setText("Selected")
         self.lblSelectedRetreive.setText(str(self.numberofselectedRetreive))
-        dbfunctions.close_db_connection()
+        #dbfunctions.close_db_connection()
 
 
     def startcompletion(self):
