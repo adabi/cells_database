@@ -117,24 +117,22 @@ class Database_Scheme_Tab:
 
     def dataChanged(self, model_name, display, old, new):
         if model_name == "Co":
-            for key in self.dictIDs.keys():
-                if key[0] == display[0] and key[1] == old:
-                    self.dictIDs[(display[0], new)] = self.dictIDs.pop(key)
+            self.dictIDs[(display[0], new)] = self.dictIDs.pop((display[0], old))
+            self.dictPositions[((display[0], new), key[1])] = self.dictPositions.pop(((display[0], old), ))
             for key in self.dictPositions.keys():
                 if key[0] == (display[0], old):
                     self.dictPositions[((display[0], new), key[1])] = self.dictPositions.pop(key)
             self.IDsmodel.display = (display[0], new)
             self.update_changes_count()
         elif model_name == "Id":
-            for key in self.dictPositions.keys():
-                if key == (display, old):
-                    self.dictPositions[(display, new)] = self.dictPositions.pop(key)
+            self.dictPositions[(display, new)] = self.dictPositions.pop((display, old))
             self.positionsModel.display = (display, new)
             self.update_changes_count()
         if old == "NEW":
             self.changeslst.append(["N", display, new])
         else:
             self.changeslst.append(["C", display, old, new])
+
 
     def dataChangedPositions(self, location, old, new):
         if new == "None":
@@ -243,7 +241,7 @@ class Database_Scheme_Tab:
                         new_color = item[3]
                         cylinder = item[1][0]
                         parameters = (new_color, self.currentDewar, cylinder, current_color)
-                        query = "UPDATE dewarupdated SET COLOR = %s WHERE Dewar = %s AND Cylinder = %s AND CANE_COLOR = %s"
+                        query = "UPDATE dewarupdated SET Cane_Color = %s WHERE Dewar = %s AND Cylinder = %s AND Cane_Color = %s"
                         self.queries.append([query, parameters])
                     elif len(item[1]) == 2:
                         cylinder = item[1][0]
@@ -251,8 +249,7 @@ class Database_Scheme_Tab:
                         current_id = item[2]
                         new_id = item[3]
                         parameters = (new_id, self.currentDewar, cylinder, color, current_id)
-                        query = "UPDATE dewarupdated SET CANE_ID = %s WHERE Dewar = %s AND Cylinder = %s AND CANE_COLOR = %s AND CANE_ID = %s".format(
-                            new_id, self.currentDewar, cylinder, color, current_id)
+                        query = "UPDATE dewarupdated SET CANE_ID = %s WHERE Dewar = %s AND Cylinder = %s AND CANE_COLOR = %s AND CANE_ID = %s"
                         self.queries.append([query, parameters])
                     elif len(item[1]) == 5:
                         cylinder = item[1][0]
@@ -270,7 +267,7 @@ class Database_Scheme_Tab:
                             parameters = (available, self.currentDewar, cylinder, color, id, position)
                             self.queries.append([query, parameters])
                         parameters = (value, self.currentDewar, cylinder, color, id, position)
-                        query = "UPDATE dewarupdated SET {} = %s WHERE Dewar = %s AND Cylinder = %s AND Cane_Color = %s AND Cane_ID = %s AND Position = %s".format(field)
+                        query = "UPDATE dewarupdated SET {} = %s WHERE Dewar = %s AND Cylinder = %s AND Cane_Color = %s AND Cane_ID = %s AND Position = %s"
                         self.queries.append([query, parameters])
                 elif item[0] == "D":
                     if len(item[1]) == 2:
@@ -298,7 +295,7 @@ class Database_Scheme_Tab:
                             self.queries.append([query, parameters])
 
             for query in self.queries:
-                execute_sql_query(query)
+                execute_sql_query(query[0], query[1])
             commit_to_db()
             self.changes = 0
             self.resetColors()
