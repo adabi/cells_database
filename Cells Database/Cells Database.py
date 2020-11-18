@@ -301,7 +301,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
 
     def grab_fields_from_config(self):
         try:
-            with open(CURRENT_PATH / 'config' , 'r') as file:
+            if platform.system() == "Windows":
+                homedir = pathlib.Path.home()
+                configpath = homedir / "AppData" / "Cells Database"
+
+            elif platform.system() == "Darwin":
+                configpath = CURRENT_PATH
+                
+            with open(configpath / 'config' , 'r') as file:
                 file_contents = file.read()
                 dbname = re.search(r'^dbname=(.*)$', file_contents, re.MULTILINE)
                 if dbname:
@@ -338,29 +345,32 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
         password = self.txtPassword.text()
         database = self.txtDatabaseName.text()
         host = self.txtDatabaseLocation.text()
-        try:
-            result = login_with_credentials(username, password, database, host)
-            self._init()
-            for i in range(1, 5):
-                self.tab.setTabEnabled(i, True)
-            self.bttnConnect.setEnabled(False)
-            self.bttnDisconnect.setEnabled(True)
-            self.lblStatus.setText("Connected")
+        result = login_with_credentials(username, password, database, host)
+        if result == True:
+            try:
+                self._init()
+                for i in range(1, 5):
+                    self.tab.setTabEnabled(i, True)
+                self.bttnConnect.setEnabled(False)
+                self.bttnDisconnect.setEnabled(True)
+                self.lblStatus.setText("Connected")
 
-            if from_button:
-                self.store_fields_in_config()
+                if from_button:
+                    self.store_fields_in_config()
+                else:
+                    self.tab.setCurrentIndex(1)
 
-            self.tab.setCurrentIndex(1)
+            except Exception as E:
 
-        except Exception as E:
-            if  result:
-                errmsg = str(E)
-            else:
-                errmsg = str(result)
-            print(E)
+                if from_button:
+                    msgbox = QtWidgets.QMessageBox()
+                    msgbox.setText(str(E))
+                    msgbox.setStandardButtons(QtWidgets.QMessageBox.Ok)
+                    msgbox.exec_()
+        else:
             if from_button:
                 msgbox = QtWidgets.QMessageBox()
-                msgbox.setText(errmsg)
+                msgbox.setText(str(result))
                 msgbox.setStandardButtons(QtWidgets.QMessageBox.Ok)
                 msgbox.exec_()
 
@@ -376,8 +386,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
         self.bttnConnect.setEnabled(True)
 
     def store_fields_in_config(self):
+        if platform.system() == "Windows":
+            homedir = pathlib.Path.home()
+            if not pathlib.Path.is_dir(homedir / "AppData" / "Cells Database"):
+                pathlib.Path.mkdir(homedir / "AppData" / "Cells Database")
+            configpath = homedir / "AppData" / "Cells Database"
 
-        print("Storing")
+        elif platform.system() == "Darwin":
+            configpath = CURRENT_PATH
         string_to_store = []
         if self.checkSaveDatabase.isChecked():
             string_to_store.append(f'dblocation={self.txtDatabaseLocation.text()}\n')
@@ -395,7 +411,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
                 keyring.set_password("Cells Database", self.txtUsername.text(), self.txtPassword.text())
 
         try:
-            with open(CURRENT_PATH / 'config', 'w+') as file:
+            with open(configpath/ 'config', 'w+') as file:
                 buff = ''.join(string_to_store)
                 file.write(buff)
         except Exception as e:
@@ -584,21 +600,31 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, Database_Scheme_Tab, Cell
 
     def keyPressEvent(self, QKeyEvent):
         if QKeyEvent.key() == QtCore.Qt.Key_Return:
-            if self.tab.currentIndex() == 0:
+
+            if self.tab.currentIndex() == 0 and self.bttnConnect.isEnabled():
                 self.connect_to_database(False, from_button=True)
-            if not (self.tblStoreCells.hasFocus() or self.tblRetreiveCells.hasFocus()):
-                if self.txtEmailStore.hasFocus():
+
+            elif self.tab.currentIndex() == 1:
+                if self.spnNumberStore.hasFocus() or self.cmbDewarStore.hasFocus():
+                    self.bttnFindStorage.animateClick()
+
+                elif self.txtEmailStore.hasFocus():
                     self.bttnEmailPositionsStore.animateClick()
-                elif self.txtEmailRetreive.hasFocus():
-                    self.bttnEmailPositionsRetreive.animateClick()
                 elif (self.combo_CellType.hasFocus() or self.spnPassageStore.hasFocus() or self.txtInitials.hasFocus()
-                    or self.txtDate.hasFocus() or self.txtComments.hasFocus()):
+                      or self.txtDate.hasFocus() or self.txtComments.hasFocus()):
                     self.bttnAddCells.animateClick()
-                else:
-                    if self.tab.currentIndex() == 1:
-                        self.bttnFindStorage.animateClick()
-                    else:
-                        self.bttnFindCells.animateClick()
+
+            elif self.tab.currentIndex() == 2:
+                if self.txtCellsRetreive.hasFocus():
+                    self.bttnFindCells.animateClick()
+                elif self.txtEmailStore.hasFocus():
+                    self.bttnEmailPositionsStore.animateClick()
+
+
+
+
+
+
 
 
 

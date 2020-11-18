@@ -267,7 +267,7 @@ class Database_Scheme_Tab:
                             parameters = (available, self.currentDewar, cylinder, color, id, position)
                             self.queries.append([query, parameters])
                         parameters = (value, self.currentDewar, cylinder, color, id, position)
-                        query = "UPDATE dewarupdated SET {} = %s WHERE Dewar = %s AND Cylinder = %s AND Cane_Color = %s AND Cane_ID = %s AND Position = %s"
+                        query = "UPDATE dewarupdated SET Cells = %s WHERE Dewar = %s AND Cylinder = %s AND Cane_Color = %s AND Cane_ID = %s AND Position = %s"
                         self.queries.append([query, parameters])
                 elif item[0] == "D":
                     if len(item[1]) == 2:
@@ -293,7 +293,7 @@ class Database_Scheme_Tab:
                             query = "INSERT INTO dewarupdated (Cells, Passage, Dewar, Cylinder, Cane_Color, Cane_ID, Position, Initials, Date, Comments, Available) "  \
                                     "VALUES (NULL, NULL, %s, %s, %s, %s, %s,  NULL, NULL, NULL, 'F')"
                             self.queries.append([query, parameters])
-
+            print(self.queries)
             for query in self.queries:
                 execute_sql_query(query[0], query[1])
             commit_to_db()

@@ -13,13 +13,14 @@ def login_with_credentials(username, password, database, host):
     try:
         SQL_DB = mysql.connector.connect(user=username, password=password, database=database, host=host)
         SQL_CURSOR = SQL_DB.cursor()
-    except Exception as e:
-        print(e)
-
-    if SQL_DB and SQL_CURSOR:
         return True
-    else:
-        return False
+    except Exception as e:
+        return e
+
+    # if SQL_DB and SQL_CURSOR:
+    #     return True
+    # else:
+    #     return False
 
 
 
@@ -164,8 +165,8 @@ def retrieve_for_backup():
     SQL_CURSOR.execute(query)
     return SQL_CURSOR.fetchall()
 
-def execute_sql_query(query):
-    SQL_CURSOR.execute(query)
+def execute_sql_query(query, params=None):
+    SQL_CURSOR.execute(query, params)
 
 def commit_to_db():
     SQL_DB.commit()
